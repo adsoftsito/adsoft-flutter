@@ -1,4 +1,9 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'package:my_app/models/predictions.dart';
+
 
 void main() {
   runApp(const MyApp());
@@ -49,6 +54,11 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   int _counter = 0;
+//final url = Uri.parse("https://resnet-service-leo-oh.cloud.okteto.net/v1/models/leo_oh_linear_model:predict");
+ 
+  final url = Uri.parse("https://linear-model-service-adsoftsito.cloud.okteto.net/v1/models/linear-model:predict"); 
+  final headers = {"Content-Type": "application/json;charset=UTF-8"};
+  late Future<Predictions> prediction;
 
   void _incrementCounter() {
     setState(() {
@@ -106,10 +116,36 @@ class _MyHomePageState extends State<MyHomePage> {
         ),
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
+        onPressed: sendPrediction,
         tooltip: 'Increment',
         child: const Icon(Icons.add),
       ), // This trailing comma makes auto-formatting nicer for build methods.
     );
   }
+
+  void sendPrediction() async {
+    //var value = double.parse(value_to_predict.text);
+    List<double> list_predictions=[];
+    //list_predictions.add(value);
+    final prediction_instance = {"instances": [
+       [0.0], [1.0], [2.0]
+    ] };
+    print(jsonEncode(prediction_instance));
+    print(url);
+    print(headers);
+
+    final res = await http.post(url, headers: headers, body: jsonEncode(prediction_instance));
+    print(jsonEncode(prediction_instance));
+    if (res.statusCode == 200) {
+      final json = jsonDecode(res.body);
+      print(json);
+
+      final Predictions predictions = Predictions.fromJson(json);
+
+      print(predictions.predictions );
+
+    }
+    //return Future.error('No fue posible enviar la predicción');
+  }
+
 }
